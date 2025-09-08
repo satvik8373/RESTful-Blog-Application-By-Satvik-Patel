@@ -23,8 +23,9 @@ app.get('/health', (req, res) => {
 	res.json({ status: 'ok' });
 });
 
-// API routes
+// API routes (support both '/api/*' and '/*' for serverless compatibility)
 app.use('/api', routes);
+app.use('/', routes);
 
 // 404 and error handlers
 app.use(notFound);
