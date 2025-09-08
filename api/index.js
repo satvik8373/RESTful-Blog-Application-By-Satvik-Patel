@@ -4,11 +4,11 @@ const path = require('path');
 const express = require('express');
 const { app: apiApp } = require('../src/server');
 
-// Serve static frontend first, then mount the API app at root.
-// The API app itself mounts routes under /api, so we do not prefix here.
+// Mount the API app first so /api/* isn't intercepted by static middleware.
+// The API app mounts its own /api routes.
 const app = express();
-app.use('/', express.static(path.join(__dirname, '..', 'public')));
 app.use(apiApp);
+app.use('/', express.static(path.join(__dirname, '..', 'public')));
 
 module.exports = app;
 
