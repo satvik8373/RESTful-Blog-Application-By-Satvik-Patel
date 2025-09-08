@@ -17,6 +17,13 @@ async function connectToDatabase(mongoUri) {
 	return mongoose.connection;
 }
 
-module.exports = { connectToDatabase };
+async function ensureDatabaseConnection(mongoUri) {
+	if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+		return mongoose.connection;
+	}
+	return connectToDatabase(mongoUri);
+}
+
+module.exports = { connectToDatabase, ensureDatabaseConnection };
 
 
