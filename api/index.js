@@ -4,17 +4,11 @@ const path = require('path');
 const express = require('express');
 const { app: apiApp } = require('../src/server');
 
-// Mount API under /api and also serve static frontend from /public
+// Serve static frontend first, then mount the API app at root.
+// The API app itself mounts routes under /api, so we do not prefix here.
 const app = express();
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
-// Support both / and /api prefixes
-app.use('/', apiApp);
-app.use('/api', apiApp);
-app.use('/', express.static(path.join(__dirname, '..', 'public'), {
-	setHeaders: (res) => {
-		res.setHeader('Cache-Control', 'no-store');
-	}
-}));
+app.use('/', express.static(path.join(__dirname, '..', 'public')));
+app.use(apiApp);
 
 module.exports = app;
 
