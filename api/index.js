@@ -8,7 +8,11 @@ const { app: apiApp } = require('../src/server');
 const app = express();
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/', apiApp);
-app.use('/', express.static(path.join(__dirname, '..', 'public')));
+app.use('/', express.static(path.join(__dirname, '..', 'public'), {
+	setHeaders: (res) => {
+		res.setHeader('Cache-Control', 'no-store');
+	}
+}));
 
 module.exports = app;
 
