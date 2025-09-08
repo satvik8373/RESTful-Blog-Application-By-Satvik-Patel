@@ -1,6 +1,6 @@
 (() => {
   const api = {
-    base: '',
+    base: '/api',
     async register(data){ return http('/auth/register','POST',data); },
     async login(data){ return http('/auth/login','POST',data); },
     async createPost(data){ return http('/posts','POST',data, true); },

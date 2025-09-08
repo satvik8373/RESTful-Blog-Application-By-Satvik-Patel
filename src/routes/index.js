@@ -12,7 +12,5 @@ router.use('/posts', postRoutes);
 router.use('/comments', commentRoutes);
 
 module.exports = router;
-//add a route to test the api
-
 
 

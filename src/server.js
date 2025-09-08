@@ -23,8 +23,7 @@ app.get('/health', (req, res) => {
 	res.json({ status: 'ok' });
 });
 
-// API routes (support both root and /api for compatibility)
-app.use('/', routes);
+// API routes
 app.use('/api', routes);
 
 // 404 and error handlers
