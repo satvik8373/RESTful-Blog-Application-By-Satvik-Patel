@@ -9,8 +9,7 @@
     "test": "jest --runInBand",
     "test:watch": "jest --watchAll",
     "lint": "echo 'no linter configured'",
-    "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "vercel-build": "echo using @vercel/node builder"
   },
   "keywords": [],
   "author": "",

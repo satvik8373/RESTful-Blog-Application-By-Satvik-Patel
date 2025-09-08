@@ -5,7 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const { connectToDatabase } = require('./config/db');
+const { connectToDatabase, ensureDatabaseConnection } = require('./config/db');
 const routes = require('./routes');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
 
@@ -17,6 +17,17 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(express.static('public'));
+
+// Ensure DB connection for serverless platforms
+app.use(async (req, res, next) => {
+	try {
+		const mongoUri = process.env.MONGODB_URI || 'mongodb://root:example@localhost:27017/blog?authSource=admin';
+		await ensureDatabaseConnection(mongoUri);
+		return next();
+	} catch (err) {
+		return next(err);
+	}
+});
 
 // Health route
 app.get('/health', (req, res) => {
