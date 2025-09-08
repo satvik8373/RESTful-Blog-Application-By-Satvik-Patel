@@ -11,3 +11,17 @@ button{cursor:pointer;background:var(--accent);border:0;color:#ffffff}
 .post-title{margin:0}
 .post-meta{opacity:.7;font-size:.9em}
 form{margin-top:8px}
+.	
+.hidden{display:none !important}
+
+/* Auth tabs */
+.auth .tabs{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.auth .tabs .spacer{flex:1}
+.tab{width:auto;background:#f3f4f6;color:#111827;border:1px solid var(--muted)}
+.tab.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.ghost{background:transparent;color:#111827;border:1px solid var(--muted)}
+.panes .pane{display:none}
+.panes .pane.active{display:block}
+.messages{margin:8px 0;padding:8px;border-radius:8px;border:1px solid var(--muted);background:#f9fafb;color:#111827}
+.messages.error{border-color:#ef4444;background:#fee2e2}
+.messages.success{border-color:#10b981;background:#d1fae5}

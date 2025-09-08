@@ -9,7 +9,8 @@ async function register(req, res) {
 	const { error, value } = registerSchema.validate(req.body);
 	if (error) return res.status(400).json({ message: error.message });
 
-	const { username, email, password } = value;
+	const { username, password } = value;
+	const email = value.email.toLowerCase().trim();
 	const existing = await User.findOne({ $or: [{ email }, { username }] });
 	if (existing) return res.status(409).json({ message: 'User already exists' });
 
@@ -22,7 +23,8 @@ async function login(req, res) {
 	const { error, value } = loginSchema.validate(req.body);
 	if (error) return res.status(400).json({ message: error.message });
 
-	const { email, password } = value;
+	const email = value.email.toLowerCase().trim();
+	const { password } = value;
 	const user = await User.findOne({ email });
 	if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 

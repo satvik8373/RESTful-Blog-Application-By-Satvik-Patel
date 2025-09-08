@@ -13,27 +13,32 @@
   </header>
 
   <main>
-    <section class="card">
-      <h2>Register</h2>
-      <form id="register-form">
-        <input id="reg-username" placeholder="Username" required>
-        <input id="reg-email" type="email" placeholder="Email" required>
-        <input id="reg-password" type="password" placeholder="Password" required>
-        <button type="submit">Register</button>
-      </form>
-    </section>
-
-    <section class="card">
-      <h2>Login</h2>
-      <form id="login-form">
-        <input id="login-email" type="email" placeholder="Email" required>
-        <input id="login-password" type="password" placeholder="Password" required>
-        <button type="submit">Login</button>
-      </form>
+    <section class="card auth">
+      <div class="tabs">
+        <button class="tab active" data-tab="register">Register</button>
+        <button class="tab" data-tab="login">Login</button>
+        <div class="spacer"></div>
+        <button id="logout-btn" class="ghost" hidden>Logout</button>
+      </div>
+      <div id="auth-messages" class="messages" aria-live="polite"></div>
+      <div class="panes">
+        <form id="register-form" class="pane active">
+          <input id="reg-username" placeholder="Username" required>
+          <input id="reg-email" type="email" placeholder="Email" required>
+          <input id="reg-password" type="password" placeholder="Password" required>
+          <button type="submit">Create account</button>
+        </form>
+        <form id="login-form" class="pane">
+          <input id="login-email" type="email" placeholder="Email" required>
+          <input id="login-password" type="password" placeholder="Password" required>
+          <button type="submit">Sign in</button>
+        </form>
+      </div>
     </section>
 
     <section class="card">
       <h2>Create Post</h2>
+      <div id="post-messages" class="messages" aria-live="polite"></div>
       <form id="post-form">
         <input id="post-title" placeholder="Title" required>
         <textarea id="post-content" placeholder="Content" required></textarea>

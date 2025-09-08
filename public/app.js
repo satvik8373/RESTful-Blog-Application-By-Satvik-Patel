@@ -10,10 +10,42 @@
 
   let token = localStorage.getItem('token') || '';
   const statusEl = document.getElementById('status');
+  const authMsg = document.getElementById('auth-messages');
+  const postMsg = document.getElementById('post-messages');
+  const logoutBtn = document.getElementById('logout-btn');
+  const authCard = document.querySelector('.card.auth');
+  const tabs = document.querySelectorAll('.tab');
+  const panes = document.querySelectorAll('.pane');
+  tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+  logoutBtn.addEventListener('click', () => doLogout());
   updateStatus();
 
   function updateStatus(){
-    statusEl.textContent = token ? 'Authenticated' : 'Not authenticated';
+    const authed = Boolean(token);
+    statusEl.textContent = authed ? 'Authenticated' : 'Not authenticated';
+    logoutBtn.hidden = !authed;
+    document.getElementById('post-form').querySelector('button').disabled = !authed;
+    authCard.classList.toggle('hidden', authed);
+  }
+
+  function showMessage(el, text, type='error'){
+    if (!el) return;
+    el.textContent = text;
+    el.className = `messages ${type}`;
+    if (!text) el.className = 'messages';
+  }
+
+  function switchTab(name){
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    panes.forEach(p => p.classList.toggle('active', p.id.startsWith(name)));
+    showMessage(authMsg, '');
+  }
+
+  function doLogout(){
+    token = '';
+    localStorage.removeItem('token');
+    updateStatus();
+    alert('Logged out');
   }
 
   async function http(path, method, body, auth){
@@ -45,10 +77,11 @@
     };
     try {
       await api.register(payload);
-      alert('Registered. You can login now.');
+      showMessage(authMsg, 'Registered. You can login now.', 'success');
       e.target.reset();
+      switchTab('login');
     } catch (err) {
-      alert(err.message);
+      showMessage(authMsg, err.message, 'error');
     }
   });
 
@@ -64,9 +97,9 @@
       localStorage.setItem('token', token);
       updateStatus();
       e.target.reset();
-      alert('Logged in');
+      showMessage(authMsg, 'Logged in successfully.', 'success');
     } catch (err) {
-      alert(err.message);
+      showMessage(authMsg, err.message, 'error');
     }
   });
 
@@ -79,8 +112,11 @@
     try {
       await api.createPost(payload);
       e.target.reset();
+      showMessage(postMsg, 'Post published.', 'success');
       await renderPosts();
-    } catch (err) { alert(err.message); }
+    } catch (err) {
+      showMessage(postMsg, err.message, 'error');
+    }
   });
 
   async function renderPosts(){
