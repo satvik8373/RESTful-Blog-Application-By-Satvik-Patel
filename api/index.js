@@ -5,9 +5,10 @@ const express = require('express');
 const { app: apiApp } = require('../src/server');
 
 // Mount the API app first so /api/* isn't intercepted by static middleware.
-// The API app mounts its own /api routes.
+// Mount under both '/' and '/api' to handle Vercel rewrites that may strip or keep '/api'.
 const app = express();
-app.use(apiApp);
+app.use('/api', apiApp);
+app.use('/', apiApp);
 app.use('/', express.static(path.join(__dirname, '..', 'public')));
 
 module.exports = app;
