@@ -4,7 +4,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const serverless = require('serverless-http');
 
 const { connectToDatabase } = require('../src/config/db');
 const routes = require('../src/routes');
@@ -47,6 +46,6 @@ app.use('/', routes);
 app.use(notFound);
 app.use(errorHandler);
 
-module.exports = serverless(app);
+module.exports = (req, res) => app(req, res);
 
 
