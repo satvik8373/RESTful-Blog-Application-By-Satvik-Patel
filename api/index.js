@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
 
 const { connectToDatabase } = require('../src/config/db');
 const routes = require('../src/routes');
@@ -25,8 +26,8 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Ensure DB before handling routes
-app.use(async (req, res, next) => {
+// Only ensure DB for API routes
+app.use('/api', async (req, res, next) => {
 	try {
 		await ensureDbConnection();
 		next();
@@ -35,13 +36,22 @@ app.use(async (req, res, next) => {
 	}
 });
 
-// Health
-app.get('/health', (req, res) => {
+// Health (root and /api)
+app.get(['/health', '/api/health'], (req, res) => {
 	res.json({ status: 'ok' });
 });
 
-// Mount app routes at root. On Vercel this function lives under /api
-app.use('/', routes);
+// Serve static frontend
+const publicDir = path.join(__dirname, '..', 'public');
+app.use(express.static(publicDir));
+
+// Mount API at /api
+app.use('/api', routes);
+
+// Fallback to index.html for root
+app.get('/', (req, res) => {
+	res.sendFile(path.join(publicDir, 'index.html'));
+});
 
 app.use(notFound);
 app.use(errorHandler);
