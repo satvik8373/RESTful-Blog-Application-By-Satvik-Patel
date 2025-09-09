@@ -6,14 +6,20 @@
     async createPost(data){ return http('/posts','POST',data, true); },
     async listPosts(){ return http('/posts','GET'); },
     async addComment(data){ return http('/comments','POST',data, true); },
+    async listComments(postId){ return http(`/comments?post_id=${postId}`,'GET'); },
+    async updatePost(id, data){ return http(`/posts/${id}`,'PUT',data, true); },
+    async deletePost(id){ return http(`/posts/${id}`,'DELETE',null, true); },
+    async updateComment(id, data){ return http(`/comments/${id}`,'PUT',data, true); },
+    async deleteComment(id){ return http(`/comments/${id}`,'DELETE',null, true); },
   };
 
   let token = localStorage.getItem('token') || '';
-  const statusEl = document.getElementById('status');
   const authMsg = document.getElementById('auth-messages');
   const postMsg = document.getElementById('post-messages');
   const logoutBtn = document.getElementById('logout-btn');
-  const authCard = document.querySelector('.card.auth');
+  const welcomeText = document.getElementById('welcome-text');
+  const authSection = document.getElementById('auth-section');
+  const blogSection = document.getElementById('blog-section');
   const tabs = document.querySelectorAll('.tab');
   const panes = document.querySelectorAll('.pane');
   tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
@@ -22,10 +28,24 @@
 
   function updateStatus(){
     const authed = Boolean(token);
-    statusEl.textContent = authed ? 'Authenticated' : 'Not authenticated';
-    logoutBtn.hidden = !authed;
-    document.getElementById('post-form').querySelector('button').disabled = !authed;
-    authCard.classList.toggle('hidden', authed);
+    
+    // Show/hide header elements
+    welcomeText.classList.toggle('hidden', !authed);
+    logoutBtn.classList.toggle('hidden', !authed);
+    
+    // Show/hide sections based on auth status
+    if (authed) {
+      authSection.classList.add('hidden');
+      blogSection.classList.remove('hidden');
+    } else {
+      authSection.classList.remove('hidden');
+      blogSection.classList.add('hidden');
+    }
+    
+    // Load posts when authenticated
+    if (authed) {
+      renderPosts();
+    }
   }
 
   function showMessage(el, text, type='error'){
@@ -45,7 +65,7 @@
     token = '';
     localStorage.removeItem('token');
     updateStatus();
-    alert('Logged out');
+    showMessage(authMsg, 'Logged out successfully.', 'success');
   }
 
   async function http(path, method, body, auth){
@@ -121,26 +141,58 @@
 
   async function renderPosts(){
     const listEl = document.getElementById('posts');
-    listEl.innerHTML = 'Loading...';
+    const countEl = document.getElementById('post-count');
+    listEl.innerHTML = '<div class="loading">Loading posts...</div>';
     try {
       const posts = await api.listPosts();
       listEl.innerHTML = '';
+      countEl.textContent = `${posts.length} post${posts.length !== 1 ? 's' : ''}`;
+      
+      if (posts.length === 0) {
+        listEl.innerHTML = '<div class="no-posts"><p>No posts yet. Be the first to share something!</p></div>';
+        return;
+      }
+      
       for (const p of posts){
-        const node = renderPost(p);
+        const node = await renderPost(p);
         listEl.appendChild(node);
       }
-      if (posts.length === 0) listEl.textContent = 'No posts yet.';
     } catch (err) {
-      listEl.textContent = err.message;
+      listEl.innerHTML = `<div class="error">Failed to load posts: ${err.message}</div>`;
     }
   }
 
-  function renderPost(post){
+  async function renderPost(post){
     const tpl = document.getElementById('post-tpl');
     const node = tpl.content.cloneNode(true);
     node.querySelector('.post-title').textContent = post.title;
     node.querySelector('.post-content').textContent = post.content;
-    node.querySelector('.post-meta').textContent = new Date(post.createdAt).toLocaleString();
+    node.querySelector('.post-meta').textContent = new Date(post.createdAt).toLocaleDateString() + ' at ' + new Date(post.createdAt).toLocaleTimeString();
+    
+    // Load and display comments
+    const commentsEl = node.querySelector('.comments');
+    try {
+      const comments = await api.listComments(post._id);
+      if (comments.length > 0) {
+        commentsEl.innerHTML = comments.map(c => 
+          `<div class="comment" data-comment-id="${c._id}">
+            <div class="comment-header">
+              <small>${new Date(c.createdAt).toLocaleString()}</small>
+              <div class="comment-actions">
+                <button class="edit-comment-btn" title="Edit comment">✏️</button>
+                <button class="delete-comment-btn" title="Delete comment">🗑️</button>
+              </div>
+            </div>
+            <p class="comment-content">${c.content}</p>
+          </div>`
+        ).join('');
+      } else {
+        commentsEl.innerHTML = '<p class="no-comments">No comments yet.</p>';
+      }
+    } catch (err) {
+      commentsEl.innerHTML = '<p class="error">Failed to load comments.</p>';
+    }
+    
     const form = node.querySelector('.comment-form');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -149,13 +201,81 @@
       try {
         await api.addComment({ postId: post._id, content });
         form.reset();
-        await renderPosts();
+        // Re-render just this post to update comments
+        const postEl = e.target.closest('.post');
+        const postData = { _id: post._id, title: postEl.querySelector('.post-title').textContent, content: postEl.querySelector('.post-content').textContent, createdAt: post.createdAt };
+        const newPostEl = await renderPost(postData);
+        postEl.parentNode.replaceChild(newPostEl, postEl);
       } catch (err) { alert(err.message); }
     });
+    
+    // Post edit/delete handlers
+    const editPostBtn = node.querySelector('.edit-post-btn');
+    const deletePostBtn = node.querySelector('.delete-post-btn');
+    
+    editPostBtn.addEventListener('click', () => editPost(post));
+    deletePostBtn.addEventListener('click', () => deletePost(post._id));
+    
+    // Comment edit/delete handlers
+    node.querySelectorAll('.edit-comment-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const commentEl = e.target.closest('.comment');
+        const commentId = commentEl.dataset.commentId;
+        const content = commentEl.querySelector('.comment-content').textContent;
+        editComment(commentId, content);
+      });
+    });
+    
+    node.querySelectorAll('.delete-comment-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const commentEl = e.target.closest('.comment');
+        const commentId = commentEl.dataset.commentId;
+        deleteComment(commentId);
+      });
+    });
+    
     return node;
   }
 
-  renderPosts();
+  // CRUD functions
+  function editPost(post) {
+    const newTitle = prompt('Edit title:', post.title);
+    if (newTitle === null) return;
+    const newContent = prompt('Edit content:', post.content);
+    if (newContent === null) return;
+    
+    api.updatePost(post._id, { title: newTitle, content: newContent })
+      .then(() => renderPosts())
+      .catch(err => alert(err.message));
+  }
+  
+  function deletePost(postId) {
+    if (!confirm('Delete this post?')) return;
+    api.deletePost(postId)
+      .then(() => renderPosts())
+      .catch(err => alert(err.message));
+  }
+  
+  function editComment(commentId, currentContent) {
+    const newContent = prompt('Edit comment:', currentContent);
+    if (newContent === null || newContent === currentContent) return;
+    
+    api.updateComment(commentId, { content: newContent })
+      .then(() => renderPosts())
+      .catch(err => alert(err.message));
+  }
+  
+  function deleteComment(commentId) {
+    if (!confirm('Delete this comment?')) return;
+    api.deleteComment(commentId)
+      .then(() => renderPosts())
+      .catch(err => alert(err.message));
+  }
+
+  // Only render posts if authenticated
+  if (token) {
+    renderPosts();
+  }
 })();
 
 

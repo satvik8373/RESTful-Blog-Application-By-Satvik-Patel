@@ -8,60 +8,100 @@
 </head>
 <body>
   <header>
-    <h1>Blog API UI <span class="credit">— by Satvik Patel</span></h1>
-    <div id="status">Not authenticated</div>
+    <div class="header-content">
+      <h1>Blog API UI <span class="credit">— by Satvik Patel</span></h1>
+      <div class="header-actions">
+        <span id="welcome-text" class="welcome-text hidden">Welcome back!</span>
+        <button id="logout-btn" class="logout-btn hidden">Logout</button>
+      </div>
+    </div>
   </header>
 
   <main>
-    <section class="card auth">
+    <!-- Auth Section (shown when not logged in) -->
+    <section class="card auth" id="auth-section">
+      <div class="auth-header">
+        <h2>Welcome to Blog</h2>
+        <p>Please login or register to continue</p>
+      </div>
       <div class="tabs">
-        <button class="tab active" data-tab="register">Register</button>
-        <button class="tab" data-tab="login">Login</button>
-        <div class="spacer"></div>
-        <button id="logout-btn" class="ghost" hidden>Logout</button>
+        <button class="tab active" data-tab="login">Login</button>
+        <button class="tab" data-tab="register">Register</button>
       </div>
       <div id="auth-messages" class="messages" aria-live="polite"></div>
       <div class="panes">
-        <form id="register-form" class="pane active">
+        <form id="login-form" class="pane active">
+          <input id="login-email" type="email" placeholder="Email" required>
+          <input id="login-password" type="password" placeholder="Password" required>
+          <button type="submit">Sign In</button>
+        </form>
+        <form id="register-form" class="pane">
           <input id="reg-username" placeholder="Username" required>
           <input id="reg-email" type="email" placeholder="Email" required>
           <input id="reg-password" type="password" placeholder="Password" required>
-          <button type="submit">Create account</button>
-        </form>
-        <form id="login-form" class="pane">
-          <input id="login-email" type="email" placeholder="Email" required>
-          <input id="login-password" type="password" placeholder="Password" required>
-          <button type="submit">Sign in</button>
+          <button type="submit">Create Account</button>
         </form>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Create Post</h2>
-      <div id="post-messages" class="messages" aria-live="polite"></div>
-      <form id="post-form">
-        <input id="post-title" placeholder="Title" required>
-        <textarea id="post-content" placeholder="Content" required></textarea>
-        <button type="submit">Publish</button>
-      </form>
-    </section>
+    <!-- Main Blog Section (shown when logged in) -->
+    <div id="blog-section" class="hidden">
+      <!-- Quick Post Creation -->
+      <section class="card create-post">
+        <div class="create-post-header">
+          <h3>What's on your mind?</h3>
+        </div>
+        <div id="post-messages" class="messages" aria-live="polite"></div>
+        <form id="post-form" class="create-form">
+          <input id="post-title" placeholder="Post title..." required>
+          <textarea id="post-content" placeholder="Share your thoughts..." required></textarea>
+          <div class="form-actions">
+            <button type="submit" class="publish-btn">
+              <span>Publish</span>
+            </button>
+          </div>
+        </form>
+      </section>
 
-    <section class="card">
-      <h2>Posts</h2>
-      <div id="posts"></div>
-    </section>
+      <!-- Posts Feed -->
+      <section class="posts-feed">
+        <div class="feed-header">
+          <h3>Latest Posts</h3>
+          <div class="post-count" id="post-count">0 posts</div>
+        </div>
+        <div id="posts" class="posts-container"></div>
+      </section>
+    </div>
   </main>
 
   <template id="post-tpl">
-    <article class="post">
-      <h3 class="post-title"></h3>
-      <p class="post-content"></p>
-      <div class="post-meta"></div>
-      <div class="comments"></div>
-      <form class="comment-form">
-        <input class="comment-content" placeholder="Write a comment..." required>
-        <button type="submit">Comment</button>
-      </form>
+    <article class="post-card">
+      <div class="post-header">
+        <div class="post-title-section">
+          <h3 class="post-title"></h3>
+          <div class="post-meta"></div>
+        </div>
+        <div class="post-actions">
+          <button class="action-btn edit-post-btn" title="Edit post">
+            <span>✏️</span>
+          </button>
+          <button class="action-btn delete-post-btn" title="Delete post">
+            <span>🗑️</span>
+          </button>
+        </div>
+      </div>
+      <div class="post-content"></div>
+      <div class="post-footer">
+        <div class="comments-section">
+          <div class="comments"></div>
+          <form class="comment-form">
+            <div class="comment-input-group">
+              <input class="comment-content" placeholder="Write a comment..." required>
+              <button type="submit" class="comment-btn">Post</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </article>
   </template>
 
